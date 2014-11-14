@@ -39,7 +39,7 @@ runBot a@(Args user pass post sub _log) = do
   res <- runReddit u pass $ do
     postInfo <- getPostInfo post
     time <- liftIO getCurrentTime
-    let timeToPost = (twoMinute - 1) `addMinutes` created postInfo
+    let timeToPost = (week - 1) `addMinutes` created postInfo
     let timeUntilPost = timeToPost `diffSeconds` time
     liftIO $ threadDelay $ fromIntegral $ timeUntilPost * 1000 * 1000
     case genFromOld postInfo of
