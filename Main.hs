@@ -5,18 +5,17 @@ import Control.Monad.IO.Class
 import Data.Text (Text)
 import Data.DateTime (addMinutes, diffSeconds, getCurrentTime)
 import Options.Applicative
-import Reddit.API
-import Reddit.API.Types.Post
-import Reddit.API.Types.User
-import Reddit.API.Types.Subreddit
+import Reddit
+import Reddit.Types.Post
+import Reddit.Types.User
+import Reddit.Types.Subreddit
 import Text.Read
 import System.Exit
 import qualified Data.Text as Text
 
 main :: IO ()
 main = do
-  args <- execParser $ info (helper <*> argsParser) fullDesc
-  runBot args
+  execParser (info (helper <*> argsParser) fullDesc) >>= runBot
 
 data Args =
   Args { username :: Username
