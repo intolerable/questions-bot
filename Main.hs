@@ -35,7 +35,7 @@ argsParser = Args <$> (Username <$> argument text (metavar "USERNAME"))
 
 runBot :: Args -> IO ()
 runBot a@(Args user pass post sub _log) = do
-  res <- runReddit u pass $ do
+  res <- runRedditWithRateLimiting u pass $ do
     postInfo <- getPostInfo post
     time <- liftIO getCurrentTime
     let timeToPost = (week - 1) `addMinutes` created postInfo
@@ -44,9 +44,10 @@ runBot a@(Args user pass post sub _log) = do
     case genFromOld postInfo of
       Just (x, y) -> do
         pID <- submitSelfPost sub x y
-        editPost pID (genFromNewAndOld sub pID postInfo)
-        stickyPost pID
-        setPostFlair sub pID "Question" "question"
+        ensure $ do
+          editPost pID (genFromNewAndOld sub pID postInfo)
+          stickyPost pID
+          setPostFlair sub pID "Question" "question"
         return pID
       _ -> liftIO $ do
         putStrLn "please give me a selfpost with content"
@@ -60,6 +61,15 @@ runBot a@(Args user pass post sub _log) = do
       putStrLn "success, we did it!"
       runBot a { previousPostID = p }
   where Username u = user
+
+ensure :: MonadIO m => RedditT m a -> RedditT m a
+ensure a = do
+  r <- nest a
+  case r of
+    Left _ -> do
+      liftIO $ threadDelay $ 5 * 1000 * 1000
+      ensure a
+    Right x -> return x
 
 week :: Integer
 week = 10080
