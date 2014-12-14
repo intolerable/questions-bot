@@ -66,9 +66,10 @@ ensure :: MonadIO m => RedditT m a -> RedditT m a
 ensure a = do
   r <- nest a
   case r of
-    Left _ -> do
+    Left (HTTPError _) -> do
       liftIO $ threadDelay $ 5 * 1000 * 1000
       ensure a
+    Left e -> failWith e
     Right x -> return x
 
 week :: Integer
