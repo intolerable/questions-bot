@@ -19,10 +19,10 @@ executable questions-bot
   main-is:             Main.hs
   build-depends:
     base >= 4.7 && < 4.9 ,
-    datetime,
     optparse-applicative,
     reddit,
     text,
+    time,
     transformers
   hs-source-dirs: ./
   default-language: Haskell2010

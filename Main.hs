@@ -3,7 +3,7 @@ module Main where
 import Control.Concurrent (threadDelay)
 import Control.Monad.IO.Class
 import Data.Text (Text)
-import Data.DateTime (addMinutes, diffSeconds, getCurrentTime)
+import Data.Time.Clock
 import Options.Applicative
 import Reddit
 import Reddit.Types.Post
@@ -38,9 +38,9 @@ runBot a@(Args user pass post sub _log) = do
   res <- runRedditWithRateLimiting u pass $ do
     postInfo <- getPostInfo post
     time <- liftIO getCurrentTime
-    let timeToPost = (week - 1) `addMinutes` created postInfo
-    let timeUntilPost = timeToPost `diffSeconds` time
-    liftIO $ threadDelay $ fromIntegral $ timeUntilPost * 1000 * 1000
+    let timeToPost = addUTCTime (week * 60) $ created postInfo
+    let timeUntilPost = diffUTCTime timeToPost time
+    liftIO $ threadDelay $ floor $ timeUntilPost * 1000 * 1000
     case genFromOld postInfo of
       Just (x, y) -> do
         pID <- submitSelfPost sub x y
@@ -72,13 +72,13 @@ ensure a = do
     Left e -> failWith e
     Right x -> return x
 
-week :: Integer
+week :: NominalDiffTime
 week = 10080
 
-hour :: Integer
+hour :: NominalDiffTime
 hour = 60
 
-twoMinute :: Integer
+twoMinute :: NominalDiffTime
 twoMinute = 2
 
 genFromOld :: Post -> Maybe (Text, Text)
