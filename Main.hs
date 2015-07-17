@@ -46,7 +46,7 @@ runBot a@(Args user pass post sub _log) = do
         pID <- submitSelfPost sub x y
         ensure $ do
           editPost pID (genFromNewAndOld sub pID postInfo)
-          stickyPost pID
+          stickyPost pID $ Just 1
           setPostFlair sub pID "Question" "question"
         return pID
       _ -> liftIO $ do
