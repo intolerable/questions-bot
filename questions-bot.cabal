@@ -18,7 +18,8 @@ cabal-version:       >=1.10
 executable questions-bot
   main-is:             Main.hs
   build-depends:
-    base >= 4.7 && < 4.9 ,
+    base >= 4.7 && < 4.10,
+    data-default-class,
     optparse-applicative,
     reddit,
     text,

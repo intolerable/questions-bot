@@ -2,16 +2,18 @@ module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad.IO.Class
+import Data.Monoid
 import Data.Text (Text)
 import Data.Time.Clock
 import Options.Applicative
 import Reddit
 import Reddit.Types.Post
-import Reddit.Types.User
 import Reddit.Types.Subreddit
-import Text.Read
+import Reddit.Types.User
 import System.Exit
+import Text.Read
 import qualified Data.Text as Text
+import Data.Default.Class
 
 main :: IO ()
 main = do
@@ -35,12 +37,14 @@ argsParser = Args <$> (Username <$> argument text (metavar "USERNAME"))
 
 runBot :: Args -> IO ()
 runBot a@(Args user pass post sub _log) = do
-  res <- runRedditWithRateLimiting u pass $ do
+  let opts = def { loginMethod = Credentials u pass
+                 , customUserAgent = Just "intolerable's question-bot for /r/Dota2" }
+  res <- runRedditWith opts $ do
     postInfo <- getPostInfo post
     time <- liftIO getCurrentTime
     let timeToPost = addUTCTime (week * 60) $ created postInfo
     let timeUntilPost = diffUTCTime timeToPost time
-    liftIO $ threadDelay $ floor $ timeUntilPost * 1000 * 1000
+    liftIO $ threadDelay $ max 0 $ floor $ timeUntilPost * 1000 * 1000
     case genFromOld postInfo of
       Just (x, y) -> do
         pID <- submitSelfPost sub x y
